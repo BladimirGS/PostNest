@@ -3,7 +3,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { Category } from '../categories/entities/category.entity';
 
 @Injectable()
@@ -26,20 +26,19 @@ export class ProductsService {
     return this.productRepository.save({ ...createProductDto, category });
   }
 
-  async findAll() {
-    const [data, total] = await this.productRepository.findAndCount({
-      relations: {
-        category: true
-      },
-      order: {
-        id: 'ASC'
-      }
-    })
+  async findAll(categoryId: number | null) {
+    const option: FindManyOptions<Product> = {
+      relations: { category: true },
+      order: { id: 'DESC' },
+    };
 
-    return {
-      data,
-      total
+    if(categoryId) {
+      option.where = { category: { id: categoryId } };
     }
+
+    const [products, total] = await this.productRepository.findAndCount(option);
+
+    return { products, total };
   }
 
   findOne(id: number) {
