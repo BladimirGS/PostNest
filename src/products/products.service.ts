@@ -26,10 +26,12 @@ export class ProductsService {
     return this.productRepository.save({ ...createProductDto, category });
   }
 
-  async findAll(categoryId: number | null) {
+  async findAll(categoryId: number | null, take: number, skip: number) {
     const option: FindManyOptions<Product> = {
       relations: { category: true },
       order: { id: 'DESC' },
+      take,
+      skip
     };
 
     if(categoryId) {
