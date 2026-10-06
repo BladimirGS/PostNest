@@ -13,7 +13,7 @@ export class Transaction {
   transactionDate!: Date
 
   @OneToMany(() => TransactionContents, (transaction) => transaction.transaction)
-  contens!: TransactionContents[]
+  contents!: TransactionContents[]
 }
 
 @Entity()
@@ -27,9 +27,9 @@ export class TransactionContents {
   @Column('decimal')
   price!: number
 
-  @ManyToOne(() => Product, (product) => product.id, {eager: true, cascade: true})
+  @ManyToOne(() => Product, (product) => product.id, {eager: true})
   product!: Product
 
-  @ManyToOne(() => Transaction,  (transaction) => transaction.contens, {cascade:true})
+  @ManyToOne(() => Transaction,  (transaction) => transaction.contents)
   transaction!: Transaction
 }

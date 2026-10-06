@@ -54,7 +54,7 @@ export class TransactionsService {
 
   findAll(transactionDate: string) {
     const options: FindManyOptions<Transaction> = {
-      relations: { contens: true }
+      relations: { contents: true }
     }
 
     if(transactionDate) {
@@ -78,7 +78,7 @@ export class TransactionsService {
     const transaction = await this.transactionRepository.findOne({
       where: {id},
       relations: {
-        contens: true
+        contents: true
       }
     });
 
@@ -93,7 +93,35 @@ export class TransactionsService {
     return `This action updates a #${id} transaction`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} transaction`;
+  async remove(id: number) {
+    const transaction = await this.findOne(id);
+
+    await this.productRepository.manager.transaction(async (transactionEntityManager) => {
+      
+      for (const contents of transaction.contents) {
+        const product = await transactionEntityManager.findOneBy(Product, {
+          id: contents.product.id,
+        });
+
+        if (!product) {
+          throw new NotFoundException(`El producto con ID ${contents.product.id} no existe`);
+        }
+
+        product.inventory += contents.quantity;
+        await transactionEntityManager.save(product);
+
+        const transactionContents = await transactionEntityManager.findOneBy(TransactionContents, {
+          id: contents.id,
+        });
+
+        if (transactionContents) {
+          await transactionEntityManager.remove(transactionContents);
+        }
+      }
+
+      await transactionEntityManager.remove(transaction);
+    });
+
+    return { message: 'Venta Eliminada' };
   }
 }
