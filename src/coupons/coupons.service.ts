@@ -32,7 +32,8 @@ export class CouponsService {
     return this.couponRepository.save(coupon);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} coupon`;
+  async remove(id: number): Promise<Coupon> {
+    const coupon = await this.findOne(id);
+    return this.couponRepository.remove(coupon);
   }
 }
